@@ -7,13 +7,6 @@ const app = express();
 //Setup app
 app.use(bodyParser.urlencoded({extended : true}));
 
-//Routers
-const tagsRouter = require('./routes/tags');
-const recipeRouter = require('./routes/recipes');
-
-//Route Filters
-app.use('/tags', tagsRouter.routes);
-app.use('/recipes', recipeRouter.routes);
 
 //Ignore favicon
 app.get('/favicon.ico', (req, res, next) => {
@@ -29,6 +22,7 @@ app.get('/', (req, res, next) => {
 app.listen(3000, function(){
     console.log('API listening on port 3000');
 });
+
 
 //Recipe
 /*

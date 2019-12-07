@@ -30,4 +30,16 @@ app.listen(3000, function(){
     console.log('API listening on port 3000');
 });
 
+//Recipe
+/*
+    Recipe
+    1. Name
+    2. Description
+    3. Images **
+    4. Author **
+    5. Ingredients **
+    6. Steps **
+    7. Instructions **
+*/ 
+
 

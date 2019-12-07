@@ -1,75 +1,85 @@
 const express = require('express');
 const Router = express.Router();
-const sql = require('../db');
+const Tag = require('../models/tag');
+
+
+class ResponseObject {
+    constructor(status, data) {
+        this.status = status;
+        if (data.length == 1) {
+            this.data = [];
+            this.data.push(data);
+        } else {
+            this.data = data;
+        }
+    }
+
+    getResponse() {
+        return this;
+    }
+}
+
 
 //Get all tags
 Router.get('/', (req, res, next) => {
-    console.log('get');
-    let query = 'SELECT * FROM tags;';
-    sql.query(query, (err, results) => {
+    Tag.findAll((err, tags) => {
         if (err) {
-            res.send('Database error');
-        }
-        res.send(JSON.stringify(results));
-    });
-});
-
-//Create new tag
-Router.post('/', (req, res, next) => {
-    console.log('post');
-    let title = req.body.title;
-
-    queryString = `INSERT INTO tags (tagTitle) VALUES ('${title}')`;
-    sql.query(queryString, function (err, result) {
-        if (err) {
-            console.log(err);
-            res.send('Error');
+            res.json(new ResponseObject('failure', []).getResponse());
         } else {
-            res.send('db update success');
-        }
-    });
-    
-});
-
-//Get specific tag
-Router.get('/:title', (req, res, next) => {
-    console.log('tag id get query');
-    let queryString = `SELECT * FROM tags WHERE tagTitle='${req.params.title}'`;
-    sql.query(queryString, function(err, result) {
-        if (err) {
-            console.log(err);
-            res.send('error');
-        } else {
-            res.send(result);
+            res.json(new ResponseObject('success', tags).getResponse());
         }
     })
 });
 
+
+//Create new tag
+Router.post('/', (req, res, next) => {
+    console.log(typeof(req.body.title));
+    const newTag = new Tag(req.body.title);
+    newTag.save((err, result) => {
+        if (err) {
+            res.json(new ResponseObject('failure', []).getResponse());
+        } else {
+            res.json(new ResponseObject('success', {message: 'Successfully added new tag to db'}).getResponse());
+        }
+    });
+});
+
+//Get specific tag
+Router.get('/:title', (req, res, next) => {
+    const tag = Tag.findByTagTitle(req.params.title, (err, tag) => {
+        if (err) {
+            res.json(new ResponseObject('failure', []).getResponse());
+        } else {
+            res.json(new ResponseObject('success', tag).getResponse());
+        }
+    });
+});
+
 //Update tag 
 Router.patch('/:title', (req, res, next) => {
-    console.log('tag update route');
-    let queryString = `UPDATE tags SET tagTitle='${req.body.title}' WHERE tagTitle='${req.params.title}'`;
-    console.log(queryString);
-    sql.query(queryString, function(err, result){
+    Tag.findByTagTitle(req.params.title, (err, result) => {
         if (err) {
-            console.log(err);
-            res.send('error');
+            res.json(new ResponseObject('failure', []).getResponse());
         } else {
-            res.send(result);
+            res.json(new ResponseObject('success', {message: 'Successfully updated tag in db'}).getResponse());
         }
     });
 });
 
 //Delete tag
 Router.delete('/:title', (req, res, next) => {
-    console.log('tag delete route');
-    let queryString = `DELETE FROM tags WHERE tagTitle='${req.params.title}'`;
-    sql.query(queryString, function(err, result) {
+    Tag.findByTagTitle(req.params.title, (err, tag) => {
         if (err) {
-            console.log(err);
-            res.send('error');
+            res.json(new ResponseObject('failure', []).getResponse());
         } else {
-            res.send(result);
+            tag.delete((err, result) => {
+                if (err) {
+                    res.json(new ResponseObject('failure', []).getResponse());
+                } else {
+                    res.json(new ResponseObject('success', {message: 'Successfully deleted tag from db'}).getResponse());
+                }
+            });
         }
     });
 });
